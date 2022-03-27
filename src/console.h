@@ -15,8 +15,8 @@
 #ifndef _CONSOLE_H
 #define _CONSOLE_H
 
-#define XMAX                          10
-#define YMAX                          21
+#define XMAX                          80
+#define YMAX                          25
 
 #define BLACK                          0
 #define RED                            1

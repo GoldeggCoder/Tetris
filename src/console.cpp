@@ -194,9 +194,9 @@ void closeConsole(void)
    tcsetattr(0, TCSANOW, &initial_settings);
 
    //clrscr();
-   gotoxy(0,0);
+   /*gotoxy(0,0);
    printf("EL htlstp");
-   gotoxy(0,0);
+   gotoxy(0,0);*/
    cmode = CONSOLE_MODE_OFF;
 }
 
@@ -221,7 +221,7 @@ static int __FOREGROUND = 0x7;
 
 void initConsole(void)
 {
-    char text[] = "mode CON: COLS=10 LINES=21";
+    char text[] = "mode CON: COLS=80 LINES=25";
 
     system(text);
     textcolor(WHITE);
@@ -356,7 +356,7 @@ void closeConsole(void)
    textbackground(BLACK);
    // clrscr();
    gotoxy(0,0);
-   printf("EL htlstp");
+   //printf("EL htlstp");
    cmode = CONSOLE_MODE_OFF;
 }
 
