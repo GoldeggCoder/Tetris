@@ -31,53 +31,71 @@ void closeAll();
 class block
 {
 public:
-    int objectID;
-    int direction;
     int currentXY[2];
     int lastXY[2];
     void initVars();
     void printBlock();
-    void deleteBlock();
-    void nextPeriod();
-    int checkValid();
+    void deleteLastBlock();
+    void deleteCurrentBlock();
+    void moveDown();
+    void moveLeft();
+    void moveRight();
+    int checkValidDown();
+    int checkValidLeft();
+    int checkValidRight();
 };
 
 void block::initVars()
 {
-    this->objectID = 0;
-    this->direction = 0;
-    this->currentXY[0] = 0;
-    this->currentXY[1] = 0;
-    this->lastXY[0] = 0;
-    this->lastXY[1] = 0;
+    this->currentXY[0] = (WIDTH/2);
+    this->currentXY[1] = 1;
+    this->lastXY[0] = (WIDTH/2);
+    this->lastXY[1] = 1;
 }
 
 void block::printBlock()
 {
-    gotoxy(START_X+(WIDTH/2)+this->currentXY[0], START_Y+this->currentXY[1]+1);
+    gotoxy(START_X+this->currentXY[0], START_Y+this->currentXY[1]);
     textcolor(BLUE);
     cout << (char)BLOCK;
     textcolor(GREEN);
 }
 
-void block::deleteBlock()
+void block::deleteLastBlock()
 {
-    gotoxy(START_X+(WIDTH/2)+this->lastXY[0], START_Y+this->lastXY[1]+1);
+    gotoxy(START_X+this->lastXY[0], START_Y+this->lastXY[1]);
     textcolor(BLACK);
     cout << (char)BLOCK;
     textcolor(GREEN);
 }
 
-void block::nextPeriod()
+void block::moveDown()
 {
-    if(this->currentXY[1]+1 <= HEIGHT)
+    if(this->currentXY[1] < HEIGHT)
     {
+        this->lastXY[0] = this->currentXY[0];
         this->lastXY[1] = this->currentXY[1];
         (this->currentXY[1])++;
     }
 }
 
-int block::checkValid()
+void block::moveLeft()
+{
+    if(this->checkValidLeft())
+    {
+        (this->currentXY[0])--;
+    }
+}
+
+void block::moveRight()
+{
+    if(this->checkValidRight())
+    {
+        (this->currentXY[0])++;
+    }
+}
+
+int block::checkValidDown()
 {
     if((this->currentXY[1]) < HEIGHT)
         return 1;
@@ -85,19 +103,60 @@ int block::checkValid()
         return 0;
 }
 
-int checkOtherBlocks(block *blocks, int currentBlock, int counter)
+int block::checkValidLeft()
+{
+    if((this->currentXY[0]-1) > 0)
+        return 1;
+    else
+        return 0;
+}
+
+int block::checkValidRight()
+{
+    if((this->currentXY[0]+1) <= WIDTH)
+        return 1;
+    else
+        return 0;
+}
+
+int checkOtherBlocks(block *blocks, int currentBlock, int counter, int direction)
 {
     for(int i = 0; i <= counter; i++)
     {
-        if((blocks[currentBlock].currentXY[1])+1 == blocks[i].currentXY[1])
-            return 0;
+        if(direction == 0)
+        {
+            if(blocks[currentBlock].currentXY[0] == blocks[i].currentXY[0] && (blocks[currentBlock].currentXY[1])+1 == blocks[i].currentXY[1])
+                return 0;
+        }
+        else if(direction == 1)
+        {
+            if((blocks[currentBlock].currentXY[0]-1) == blocks[i].currentXY[0] && blocks[currentBlock].currentXY[1] == blocks[i].currentXY[1])
+                return 0;
+        }
+        else if(direction == 2)
+        {
+            if((blocks[currentBlock].currentXY[0]+1) == blocks[i].currentXY[0] && blocks[currentBlock].currentXY[1] == blocks[i].currentXY[1])
+                return 0;
+        }
     }
     return 1;
 }
 
+int checkKey()
+{
+    char key = getch();
+    if(key == LEFT)
+        return 1;
+    else if(key == RIGHT)
+        return 2;
+    else
+        return 0;
+}
+
 int main()
 {
-    int counter = 0;
+    int counter = 0, key = 0;
+    unsigned long startTime;
     block blocks[200];
 
     initAll();
@@ -107,12 +166,26 @@ int main()
         blocks[counter].initVars();
         do
         {
-            blocks[counter].deleteBlock();
+            blocks[counter].deleteLastBlock();
             blocks[counter].printBlock();
-            delay(200);
-            blocks[counter].nextPeriod();
+            blocks[counter].moveDown();
+            startTime = clock();
+            while(clock() - startTime < (20 * (CLOCKS_PER_SEC / 1000)))
+            {
+                fflush(stdin);
+                if(kbhit())
+                {
+                    key = checkKey();
+                    if(key == 1 && checkOtherBlocks(blocks, counter, counter, 1))
+                        blocks[counter].moveLeft();
+                    else if(key == 2 && checkOtherBlocks(blocks, counter, counter, 2))
+                        blocks[counter].moveRight();
+                }
+            }
         }
-        while(blocks[counter].checkValid() && checkOtherBlocks(blocks, counter, counter));
+        while(blocks[counter].checkValidDown() && checkOtherBlocks(blocks, counter, counter, 0));
+        blocks[counter].deleteLastBlock();
+        blocks[counter].printBlock();
         counter++;
     }
     
