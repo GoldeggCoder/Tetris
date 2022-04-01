@@ -21,7 +21,7 @@
 #define START_Y 4
 
 #define HEIGHT 15
-#define WIDTH 10
+#define WIDTH 11
 
 using namespace std;
 
@@ -47,9 +47,9 @@ public:
 
 void block::initVars()
 {
-    this->currentXY[0] = (WIDTH/2);
+    this->currentXY[0] = (WIDTH/2)+1;
     this->currentXY[1] = 1;
-    this->lastXY[0] = (WIDTH/2);
+    this->lastXY[0] = (WIDTH/2)+1;
     this->lastXY[1] = 1;
 }
 
@@ -119,9 +119,20 @@ int block::checkValidRight()
         return 0;
 }
 
-int checkOtherBlocks(block *blocks, int currentBlock, int counter, int direction)
+int checkKey()
 {
-    for(int i = 0; i <= counter; i++)
+    char key = getch();
+    if(key == LEFT)
+        return 1;
+    else if(key == RIGHT)
+        return 2;
+    else
+        return 0;
+}
+
+int checkOtherBlocks(block *blocks, int currentBlock, int direction)
+{
+    for(int i = 0; i < currentBlock; i++)
     {
         if(direction == 0)
         {
@@ -142,15 +153,28 @@ int checkOtherBlocks(block *blocks, int currentBlock, int counter, int direction
     return 1;
 }
 
-int checkKey()
+void checkFullRowAndDelete(block *blocks, int currentBlock)
 {
-    char key = getch();
-    if(key == LEFT)
-        return 1;
-    else if(key == RIGHT)
-        return 2;
-    else
-        return 0;
+    for(int i = 0; i <= HEIGHT; i++)
+    {
+        int counter = 0;
+        for(int j = 0; j <= currentBlock; j++)
+        {
+            if(blocks[j].currentXY[1] == i)
+                counter++;
+        }
+        if(counter == WIDTH)
+        {
+            textcolor(BLACK);
+            gotoxy(START_X+1, START_Y+i);
+            for(int j = 0; j <= WIDTH; j++)
+            {
+                blocks[j].currentXY[1] = HEIGHT+1;
+                cout << (char)BLOCK;
+            }
+            textcolor(GREEN);
+        }
+    }
 }
 
 int main()
@@ -170,22 +194,23 @@ int main()
             blocks[counter].printBlock();
             blocks[counter].moveDown();
             startTime = clock();
-            while(clock() - startTime < (20 * (CLOCKS_PER_SEC / 1000)))
+            while(clock() - startTime < (100 * (CLOCKS_PER_SEC / 1000)))
             {
                 fflush(stdin);
                 if(kbhit())
                 {
                     key = checkKey();
-                    if(key == 1 && checkOtherBlocks(blocks, counter, counter, 1))
+                    if(key == 1 && checkOtherBlocks(blocks, counter, 1))
                         blocks[counter].moveLeft();
-                    else if(key == 2 && checkOtherBlocks(blocks, counter, counter, 2))
+                    else if(key == 2 && checkOtherBlocks(blocks, counter, 2))
                         blocks[counter].moveRight();
                 }
             }
         }
-        while(blocks[counter].checkValidDown() && checkOtherBlocks(blocks, counter, counter, 0));
+        while(blocks[counter].checkValidDown() && checkOtherBlocks(blocks, counter, 0));
         blocks[counter].deleteLastBlock();
         blocks[counter].printBlock();
+        checkFullRowAndDelete(blocks, counter);
         counter++;
     }
     
